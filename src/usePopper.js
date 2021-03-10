@@ -46,7 +46,7 @@ export const usePopper = (
         top: '0',
       },
       arrow: {
-        position: 'absolute', 
+        position: 'absolute',
       },
     },
     attributes: {},
@@ -58,6 +58,8 @@ export const usePopper = (
       enabled: true,
       phase: 'write',
       fn: ({ state }) => {
+        if (!popperInstanceRef.current) return;
+
         const elements = Object.keys(state.elements);
 
         setState({

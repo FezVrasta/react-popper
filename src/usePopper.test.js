@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import * as PopperJs from '@popperjs/core';
 
 // Public API
@@ -13,30 +13,29 @@ describe('userPopper', () => {
   });
 
   it('initializes the Popper instance', async () => {
-    const { result, wait } = renderHook(() =>
+    const { result, waitFor } = renderHook(() =>
       usePopper(referenceElement, popperElement)
     );
 
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.state).not.toBe(null);
     });
   });
 
   it("doesn't update Popper instance on props update if not needed by Popper", async () => {
     const spy = jest.spyOn(PopperJs, 'createPopper');
-    const { wait, rerender } = renderHook(
+
+    const { waitForNextUpdate, rerender } = renderHook(
       ({ referenceElement, popperElement }) =>
         usePopper(referenceElement, popperElement),
       { initialProps: { referenceElement, popperElement } }
     );
 
-    await act(async () => {
-      await rerender({ referenceElement, popperElement });
-    });
+    rerender({ referenceElement, popperElement });
 
-    await wait(() => {
-      expect(spy).toHaveBeenCalledTimes(1);
-    });
+    await waitForNextUpdate();
+
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('updates Popper on explicitly listed props change', async () => {
@@ -54,11 +53,13 @@ describe('userPopper', () => {
     });
 
     await waitForNextUpdate();
+
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
   it('does not update Popper on generic props change', async () => {
     const spy = jest.spyOn(PopperJs, 'createPopper');
+
     const { waitForNextUpdate, rerender } = renderHook(
       ({ referenceElement, popperElement, options }) =>
         usePopper(referenceElement, popperElement, options),
@@ -78,15 +79,15 @@ describe('userPopper', () => {
 
   it('destroys Popper on instance on unmount', async () => {
     const spy = jest.spyOn(PopperJs, 'createPopper');
-    const { waitForNextUpdate, unmount } = renderHook(() =>
+
+    const { unmount } = renderHook(() =>
       usePopper(referenceElement, popperElement)
     );
 
-    await waitForNextUpdate();
     const popperInstance = spy.mock.results[0].value;
     const destroy = jest.spyOn(popperInstance, 'destroy');
 
-    await unmount();
+    unmount();
 
     expect(destroy).toHaveBeenCalled();
   });
@@ -98,8 +99,8 @@ describe('userPopper', () => {
 
     const { result, waitForNextUpdate } = renderHook(() =>
       usePopper(referenceElement, popperElementWithArrow, {
-        placement: "bottom",
-        modifiers: [{ name: "arrow", options: { element: arrowElement } }]
+        placement: 'bottom',
+        modifiers: [{ name: 'arrow', options: { element: arrowElement } }],
       })
     );
 
